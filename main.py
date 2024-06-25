@@ -15,6 +15,10 @@ TAG_LINE = config['TAG_LINE']
 encoded_riot_id_name = quote(RIOT_ID_NAME)
 encoded_tag_line = quote(TAG_LINE)
 
+PATH_MATCHES_DATA = config["path_matches_data"].replace('{username}', RIOT_ID_NAME)
+PATH_KILLS_DATA = config["path_kills_data"].replace('{username}', RIOT_ID_NAME)
+PATH_SPELLS_DATA = config["path_spells_data"].replace('{username}', RIOT_ID_NAME)
+
 SUMMONER_REGION = config['SUMMONER_REGION']
 
 url = config['BASE_URL'].replace('{REGION}', SUMMONER_REGION).replace('{encoded_riot_id_name}', encoded_riot_id_name).replace('{encoded_tag_line}', encoded_tag_line)
@@ -127,8 +131,8 @@ for match_id in list_match_ids:
         # Add data to matches_data
         matches_data.append({
             'match_id': match_data['match_id']
-            , 'champion': match_data['championName']
-            , 'duration': match_data['info']['gameDuration']
+            , 'champion': match_data['champion']
+            , 'duration': match_data['duration']
             , 'kills': match_data['kills']
             , 'deaths': match_data['deaths']
             , 'assists': match_data['assists']
@@ -145,7 +149,7 @@ for match_id in list_match_ids:
             })
 
         # Add data to spells_data
-        spells_types = [1, 2, 3, 4]
+        spells_types = ['skill_q_clicks', 'skill_w_clicks', 'skill_e_clicks', 'skill_r_clicks']
         spells_labels = ['Q', 'W', 'E', 'R']
         for spell_type, spell_label in zip(spells_types, spells_labels):
             spells_data.append({
@@ -160,3 +164,36 @@ for match_id in list_match_ids:
 matches_df = pd.DataFrame(matches_data)
 kills_df = pd.DataFrame(kills_data)
 spells_df = pd.DataFrame(spells_data)
+
+
+# Export data
+def read_excel(self, path, schema=None):
+    print('Reading Excel from: ', path)
+    df = pd.read_excel(path)
+    if schema:
+        # Convert DataFrame columns to the specified data types
+        for column, dtype in schema.items():
+            print('Column :', column, 'dtype :', dtype)
+            df[column] = df[column].astype(dtype)
+    
+    return df
+
+
+def output_excel(path, df, schema=None, append=False):
+    print('Outputting Excel to: ', path)
+    if schema:
+        # Convert DataFrame columns to the specified data types
+        for column, dtype in schema.items():
+            print('Column :', column, 'dtype :', dtype)
+            df[column] = df[column].astype(dtype)
+    
+    if os.path.exists(path) and append:
+        existing_df = read_excel(path=path, schema=schema)
+        df = pd.concat([existing_df, df], ignore_index=True)
+    
+    df.to_excel(path, index=False)
+
+
+output_excel(PATH_MATCHES_DATA, matches_df)
+output_excel(PATH_KILLS_DATA, kills_df)
+output_excel(PATH_SPELLS_DATA, spells_df)
