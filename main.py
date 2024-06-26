@@ -9,15 +9,61 @@ import time
 with open('config.json', 'r') as f:
     config = json.load(f)
 
+def save_json(path, data):
+    try:
+        with open(path, 'w') as f:
+            json.dump(data, f, indent=4)
+            print("Configuration saved successfully.")
+    except Exception as e:
+        print(f"Error: Could not save the configuration to {path}. {str(e)}")
+
+def add_user(username):
+    config['USER_EXTRACT_INFO'][username] = {
+        'latest_match_date_str': ""
+        , 'latest_match_date_epoch': None
+        , 'number_matches': 0
+    }
+
+    save_json('config.json', config)
+
+def reset_config():
+    config['USER_EXTRACT_INFO'][RIOT_ID_NAME]['latest_match_date_str'] = ""
+    config['USER_EXTRACT_INFO'][RIOT_ID_NAME]['latest_match_date_epoch'] = None
+    config['USER_EXTRACT_INFO'][RIOT_ID_NAME]['number_matches'] = 0
+    save_json('config.json', config)
+    
+def update_latest_track_date(date, number_matches):
+        config['USER_EXTRACT_INFO'][RIOT_ID_NAME]['latest_match_date_epoch'] = date
+        
+        epoch_date_s = date / 1000 # Converting epoch date from milliseconds to seconds
+        date_str = datetime.fromtimestamp(epoch_date_s).strftime('%Y-%m-%d %H:%M:%S')
+        config['USER_EXTRACT_INFO'][RIOT_ID_NAME]['latest_match_date_str'] = date_str
+        
+        config['USER_EXTRACT_INFO'][RIOT_ID_NAME]['number_matches'] = number_matches
+        save_json('config.json', config)
+
+
 API_KEY = config['API_KEY']
 RIOT_ID_NAME = config['RIOT_ID_NAME']
 TAG_LINE = config['TAG_LINE']
 encoded_riot_id_name = quote(RIOT_ID_NAME)
 encoded_tag_line = quote(TAG_LINE)
 
-PATH_MATCHES_DATA = config["path_matches_data"].replace('{username}', RIOT_ID_NAME)
-PATH_KILLS_DATA = config["path_kills_data"].replace('{username}', RIOT_ID_NAME)
-PATH_SPELLS_DATA = config["path_spells_data"].replace('{username}', RIOT_ID_NAME)
+NEW_XLSX = config['NEW_XLSX']
+
+PATH_MATCHES_DATA = config['path_matches_data'].replace('{username}', RIOT_ID_NAME)
+PATH_KILLS_DATA = config['path_kills_data'].replace('{username}', RIOT_ID_NAME)
+PATH_SPELLS_DATA = config['path_spells_data'].replace('{username}', RIOT_ID_NAME)
+
+if RIOT_ID_NAME not in config['USER_EXTRACT_INFO']:
+    add_user(RIOT_ID_NAME)
+elif NEW_XLSX:
+    reset_config()
+
+LATEST_MATCH_DATE_STR = config['USER_EXTRACT_INFO'][RIOT_ID_NAME]['latest_match_date_str']
+LATEST_MATCH_DATE = config['USER_EXTRACT_INFO'][RIOT_ID_NAME]['latest_match_date_epoch']
+number_matches = config['USER_EXTRACT_INFO'][RIOT_ID_NAME]['number_matches']
+
 
 SUMMONER_REGION = config['SUMMONER_REGION']
 
@@ -81,6 +127,10 @@ def get_match_data(match_id):
                     , 'kills': participant['kills']
                     , 'deaths': participant['deaths']
                     , 'assists': participant['assists']
+                    , 'win': 1 if participant['win'] else 0
+                    , 'game_mode': match_data['info']['gameMode']
+                    , 'queueId': match_data['info']['queueId']
+                    , 'game_creation_date': match_data['info']['gameCreation']
                     , 'single_kills': participant['kills']
                     , 'double_kills': participant['doubleKills']
                     , 'triple_kills': participant['tripleKills']
@@ -127,6 +177,7 @@ spells_data = []
 
 for match_id in list_match_ids:
     match_data = get_match_data(match_id)
+    number_matches += 1
     if match_data:
         # Add data to matches_data
         matches_data.append({
@@ -136,6 +187,10 @@ for match_id in list_match_ids:
             , 'kills': match_data['kills']
             , 'deaths': match_data['deaths']
             , 'assists': match_data['assists']
+            , 'win': match_data['win']
+            , 'game_mode': match_data['game_mode']
+            , 'queueId': match_data['queueId']
+            , 'game_creation_date': match_data['game_creation_date']
         })
 
         # Add data to kills_data
@@ -160,6 +215,14 @@ for match_id in list_match_ids:
 
     # Sleep for 1.3 secs to avoid exceeding rate limit of API
     time.sleep(1.3)
+
+latest_game_date = match_data['game_creation_date']
+
+update_config = True
+if update_config:
+    if not LATEST_MATCH_DATE or latest_game_date >= LATEST_MATCH_DATE:
+        update_latest_track_date(date=latest_game_date, number_matches=number_matches)
+
 
 matches_df = pd.DataFrame(matches_data)
 kills_df = pd.DataFrame(kills_data)
