@@ -256,33 +256,37 @@ matches_df = pd.DataFrame(matches_data)
 kills_df = pd.DataFrame(kills_data)
 spells_df = pd.DataFrame(spells_data)
 
-latest_game_date = matches_df['game_creation_date'].max()
-
-update_config = True
-if update_config:
-    if not LATEST_MATCH_DATE or latest_game_date >= LATEST_MATCH_DATE:
-        update_latest_track_date(date=latest_game_date, number_matches=number_matches)
-
 
 # Load existing kills data
 if os.path.exists(PATH_KILLS_DATA):
     existing_kills_df = read_excel(PATH_KILLS_DATA)
-else:
-    existing_kills_df = pd.DataFrame(columns=kills_df.columns)
+    # Merge kills data
+    kills_df = merge_and_sum(existing_kills_df, kills_df, ['Champion', 'Kill Type'], ['Number of Kills'])
 
-# Merge kills data
-kills_df = merge_and_sum(existing_kills_df, kills_df, ['Champion', 'Kill Type'], ['Number of Kills'])
+output_excel(PATH_KILLS_DATA, kills_df, append=False)
+# else:
+#     existing_kills_df = pd.DataFrame(columns=kills_df.columns)
+
 
 # Load existing spells data
 if os.path.exists(PATH_SPELLS_DATA):
     existing_spells_df = read_excel(PATH_SPELLS_DATA)
-else:
-    existing_spells_df = pd.DataFrame(columns=spells_df.columns)
+    # Merge spells data
+    spells_df = merge_and_sum(existing_spells_df, spells_df, ['Champion', 'Spell Type'], ['Spell Casts'])
 
-# Merge spells data
-spells_df = merge_and_sum(existing_spells_df, spells_df, ['Champion', 'Spell Type'], ['Spell Casts'])
+output_excel(PATH_SPELLS_DATA, spells_df, append=False)
+# else:
+#     existing_spells_df = pd.DataFrame(columns=spells_df.columns)
 
 
-output_excel(PATH_MATCHES_DATA, matches_df)
-output_excel(PATH_KILLS_DATA, kills_df)
-output_excel(PATH_SPELLS_DATA, spells_df)
+output_excel(PATH_MATCHES_DATA, matches_df, append=False)
+
+
+# Update the configuration with the latest match date and number of matches
+latest_game_date = matches_df['game_creation_date'].max()
+
+update_config = True
+if update_config and matches_data:
+    if not LATEST_MATCH_DATE or latest_game_date >= LATEST_MATCH_DATE:
+        update_latest_track_date(date=latest_game_date, number_matches=number_matches)
+
