@@ -6,9 +6,11 @@ from urllib.parse import quote
 from datetime import datetime, timedelta
 import time
 
+# Load the configuration
 with open('config.json', 'r') as f:
     config = json.load(f)
 
+# Define the save_json function to save the configuration file
 def save_json(path, data):
     try:
         with open(path, 'w') as f:
@@ -17,21 +19,23 @@ def save_json(path, data):
     except Exception as e:
         print(f"Error: Could not save the configuration to {path}. {str(e)}")
 
+# Define the add_user function to add a new user to the configuration
 def add_user(username):
     config['USER_EXTRACT_INFO'][username] = {
         'latest_match_date_str': ""
         , 'latest_match_date_epoch': None
         , 'number_matches': 0
     }
-
     save_json('config.json', config)
 
+# Define the reset_config function to reset the configuration for a specific user
 def reset_config():
     config['USER_EXTRACT_INFO'][RIOT_ID_NAME]['latest_match_date_str'] = ""
     config['USER_EXTRACT_INFO'][RIOT_ID_NAME]['latest_match_date_epoch'] = None
     config['USER_EXTRACT_INFO'][RIOT_ID_NAME]['number_matches'] = 0
     save_json('config.json', config)
     
+# Define the update_latest_track_date function to update the latest match date and number of matches
 def update_latest_track_date(date, number_matches):
         config['USER_EXTRACT_INFO'][RIOT_ID_NAME]['latest_match_date_epoch'] = date
         
@@ -42,7 +46,7 @@ def update_latest_track_date(date, number_matches):
         config['USER_EXTRACT_INFO'][RIOT_ID_NAME]['number_matches'] = number_matches
         save_json('config.json', config)
 
-
+# Load the API key and user information from the configuration
 API_KEY = config['API_KEY']
 RIOT_ID_NAME = config['RIOT_ID_NAME']
 TAG_LINE = config['TAG_LINE']
@@ -55,24 +59,27 @@ PATH_MATCHES_DATA = config['path_matches_data'].replace('{username}', RIOT_ID_NA
 PATH_KILLS_DATA = config['path_kills_data'].replace('{username}', RIOT_ID_NAME)
 PATH_SPELLS_DATA = config['path_spells_data'].replace('{username}', RIOT_ID_NAME)
 
+# Check if the user exists in the configuration, if not add the user
 if RIOT_ID_NAME not in config['USER_EXTRACT_INFO']:
     add_user(RIOT_ID_NAME)
 elif NEW_XLSX:
     reset_config()
 
+# Load the latest match date and number of matches from the configuration
 LATEST_MATCH_DATE_STR = config['USER_EXTRACT_INFO'][RIOT_ID_NAME]['latest_match_date_str']
 LATEST_MATCH_DATE = config['USER_EXTRACT_INFO'][RIOT_ID_NAME]['latest_match_date_epoch']
 number_matches = config['USER_EXTRACT_INFO'][RIOT_ID_NAME]['number_matches']
 
-
+# Define the summoner region and API URL
 SUMMONER_REGION = config['SUMMONER_REGION']
-
 url = config['BASE_URL'].replace('{REGION}', SUMMONER_REGION).replace('{encoded_riot_id_name}', encoded_riot_id_name).replace('{encoded_tag_line}', encoded_tag_line)
 
+# Set the request headers with the API key
 headers = {
     'X-Riot-Token': API_KEY
 }
 
+# Fetch the summoner data
 response = requests.get(url, headers=headers)
 if response.status_code == 200:
     summoner_data = response.json()
@@ -81,7 +88,7 @@ else:
     print(f'Error: {response.status_code}')
     
 
-# Export data
+# Function to read an Excel file and return a DataFrame
 def read_excel(path, schema=None):
     print('Reading Excel from: ', path)
     df = pd.read_excel(path)
@@ -93,7 +100,7 @@ def read_excel(path, schema=None):
     
     return df
 
-
+# Function to save a DataFrame to an Excel file
 def output_excel(path, df, schema=None, append=False):
     print('Outputting Excel to: ', path)
     if schema:
@@ -109,8 +116,7 @@ def output_excel(path, df, schema=None, append=False):
     df.to_excel(path, index=False)
 
 
-# Get data from matches
-
+# Function to fetch match IDs for a given PUUID and time range
 def fetch_matches(puuid, start_time=None, end_time=None):
     
     match_ids = []
@@ -138,10 +144,9 @@ def fetch_matches(puuid, start_time=None, end_time=None):
     
     return match_ids
 
-
+# Function to get match data for a given match ID
 def get_match_data(match_id):
     url = f'https://{SUMMONER_REGION}.api.riotgames.com/lol/match/v5/matches/{match_id}'
-    # headers = {'X-Riot-Toekn': API_KEY}
     response = requests.get(url, headers=headers)
     
     if response.status_code == 200:
@@ -174,7 +179,7 @@ def get_match_data(match_id):
         print(f'Error fetching match {match_id}: {response.status_code}')
         return None
 
-
+# Function to merge and sum DataFrames based on key columns and sum columns
 def merge_and_sum(existing_df, new_df, key_columns, sum_columns):
     if not existing_df.empty:
         combined_df = pd.concat([existing_df, new_df])
@@ -184,25 +189,12 @@ def merge_and_sum(existing_df, new_df, key_columns, sum_columns):
         return new_df
 
 
-
+# Initialize lists to store match data
 list_match_ids = []
+matches_data = []
+kills_data = []
+spells_data = []
 
-# end_date = datetime.utcnow()
-# start_date = end_date - timedelta(days=1*365)
-# end_date = datetime(2023, 7, 21)
-# start_date = datetime(2020, 1, 1)
-
-
-# current_end_date = end_date
-
-# while current_end_date > start_date:
-#     current_start_date = current_end_date - timedelta(days=30)  # Fetch 30 days of matches at a time
-#     if current_start_date < start_date:
-#         current_start_date = start_date
-
-#     batch_match_ids = fetch_matches(PUUID, current_start_date, current_end_date)
-#     list_match_ids.extend(batch_match_ids)
-#     current_end_date = current_start_date
 
 # Check if there was already extracted data
 if os.path.exists(PATH_MATCHES_DATA) and not NEW_XLSX:
@@ -217,10 +209,6 @@ else:
 
 print(f'Total Matches: {len(list_match_ids)}')
 
-
-matches_data = []
-kills_data = []
-spells_data = []
 
 for match_id in list_match_ids:
     match_data = get_match_data(match_id)
