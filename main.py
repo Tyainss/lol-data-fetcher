@@ -13,6 +13,13 @@ with open('config.json', 'r') as f:
 with open('schema.json', 'r') as f:
     schema = json.load(f)
 
+def date_from_epoch(epoch_date):
+    if epoch_date > 1e10:  # This means the epoch is in milliseconds
+        epoch_date /= 1000 # Convert date to seconds
+
+    date_str = datetime.fromtimestamp(epoch_date).strftime('%Y-%m-%d %H:%M:%S')
+    return date_str
+
 # Define the save_json function to save the configuration file
 def save_json(path, data):
     try:
@@ -42,8 +49,9 @@ def reset_config():
 def update_latest_track_date(date, number_matches):
         config['USER_EXTRACT_INFO'][RIOT_ID_NAME]['latest_match_date_epoch'] = date
         
-        epoch_date_s = date / 1000 # Converting epoch date from milliseconds to seconds
-        date_str = datetime.fromtimestamp(epoch_date_s).strftime('%Y-%m-%d %H:%M:%S')
+        # epoch_date_s = date / 1000 # Converting epoch date from milliseconds to seconds
+        # date_str = datetime.fromtimestamp(epoch_date_s).strftime('%Y-%m-%d %H:%M:%S')
+        date_str = date_from_epoch(date)
         config['USER_EXTRACT_INFO'][RIOT_ID_NAME]['latest_match_date_str'] = date_str
         
         config['USER_EXTRACT_INFO'][RIOT_ID_NAME]['number_matches'] = number_matches
@@ -224,6 +232,7 @@ for match_id in list_match_ids:
         # Add data to matches_data
         matches_data.append({
             'match_id': match_data['match_id']
+            , 'username': RIOT_ID_NAME
             , 'champion': match_data['champion']
             , 'duration': match_data['duration']
             , 'kills': match_data['kills']
@@ -232,7 +241,8 @@ for match_id in list_match_ids:
             , 'win': match_data['win']
             , 'game_mode': match_data['game_mode']
             , 'queueId': match_data['queueId']
-            , 'game_creation_date': match_data['game_creation_date']
+            , 'game_creation_date_epoch': match_data['game_creation_date']
+            , 'game_creation_date': date_from_epoch(match_data['game_creation_date'])
         })
 
         # Add data to kills_data
