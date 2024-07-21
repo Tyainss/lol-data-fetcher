@@ -81,6 +81,34 @@ else:
     print(f'Error: {response.status_code}')
     
 
+# Export data
+def read_excel(path, schema=None):
+    print('Reading Excel from: ', path)
+    df = pd.read_excel(path)
+    if schema:
+        # Convert DataFrame columns to the specified data types
+        for column, dtype in schema.items():
+            print('Column :', column, 'dtype :', dtype)
+            df[column] = df[column].astype(dtype)
+    
+    return df
+
+
+def output_excel(path, df, schema=None, append=False):
+    print('Outputting Excel to: ', path)
+    if schema:
+        # Convert DataFrame columns to the specified data types
+        for column, dtype in schema.items():
+            print('Column :', column, 'dtype :', dtype)
+            df[column] = df[column].astype(dtype)
+    
+    if os.path.exists(path) and append:
+        existing_df = read_excel(path=path, schema=schema)
+        df = pd.concat([existing_df, df], ignore_index=True)
+    
+    df.to_excel(path, index=False)
+
+
 # Get data from matches
 
 def fetch_matches(puuid, start_time=None, end_time=None):
@@ -147,6 +175,16 @@ def get_match_data(match_id):
         return None
 
 
+def merge_and_sum(existing_df, new_df, key_columns, sum_columns):
+    if not existing_df.empty:
+        combined_df = pd.concat([existing_df, new_df])
+        combined_df = combined_df.groupby(key_columns, as_index=False)[sum_columns].sum()
+        return combined_df
+    else:
+        return new_df
+
+
+
 list_match_ids = []
 
 # end_date = datetime.utcnow()
@@ -166,7 +204,16 @@ list_match_ids = []
 #     list_match_ids.extend(batch_match_ids)
 #     current_end_date = current_start_date
 
-list_match_ids = fetch_matches(PUUID)
+# Check if there was already extracted data
+if os.path.exists(PATH_MATCHES_DATA) and not NEW_XLSX:
+    existing_match_df = read_excel(PATH_MATCHES_DATA)
+    
+    start_time = datetime.fromtimestamp(LATEST_MATCH_DATE / 1000).strftime('%Y-%m-%d %H:%M:%S')
+    list_match_ids = fetch_matches(PUUID, start_time=start_time)
+    # Don't get data from matches already extracted
+    list_match_ids = [m for m in list_match_ids if m not in list(existing_match_df['match_id'])]
+else:
+    list_match_ids = fetch_matches(PUUID)
 
 print(f'Total Matches: {len(list_match_ids)}')
 
@@ -177,8 +224,8 @@ spells_data = []
 
 for match_id in list_match_ids:
     match_data = get_match_data(match_id)
-    number_matches += 1
     if match_data:
+        number_matches += 1
         # Add data to matches_data
         matches_data.append({
             'match_id': match_data['match_id']
@@ -216,7 +263,12 @@ for match_id in list_match_ids:
     # Sleep for 1.3 secs to avoid exceeding rate limit of API
     time.sleep(1.3)
 
-latest_game_date = match_data['game_creation_date']
+
+matches_df = pd.DataFrame(matches_data)
+kills_df = pd.DataFrame(kills_data)
+spells_df = pd.DataFrame(spells_data)
+
+latest_game_date = matches_df['game_creation_date'].max()
 
 update_config = True
 if update_config:
@@ -224,37 +276,23 @@ if update_config:
         update_latest_track_date(date=latest_game_date, number_matches=number_matches)
 
 
-matches_df = pd.DataFrame(matches_data)
-kills_df = pd.DataFrame(kills_data)
-spells_df = pd.DataFrame(spells_data)
+# Load existing kills data
+if os.path.exists(PATH_KILLS_DATA):
+    existing_kills_df = read_excel(PATH_KILLS_DATA)
+else:
+    existing_kills_df = pd.DataFrame(columns=kills_df.columns)
 
+# Merge kills data
+kills_df = merge_and_sum(existing_kills_df, kills_df, ['Champion', 'Kill Type'], ['Number of Kills'])
 
-# Export data
-def read_excel(self, path, schema=None):
-    print('Reading Excel from: ', path)
-    df = pd.read_excel(path)
-    if schema:
-        # Convert DataFrame columns to the specified data types
-        for column, dtype in schema.items():
-            print('Column :', column, 'dtype :', dtype)
-            df[column] = df[column].astype(dtype)
-    
-    return df
+# Load existing spells data
+if os.path.exists(PATH_SPELLS_DATA):
+    existing_spells_df = read_excel(PATH_SPELLS_DATA)
+else:
+    existing_spells_df = pd.DataFrame(columns=spells_df.columns)
 
-
-def output_excel(path, df, schema=None, append=False):
-    print('Outputting Excel to: ', path)
-    if schema:
-        # Convert DataFrame columns to the specified data types
-        for column, dtype in schema.items():
-            print('Column :', column, 'dtype :', dtype)
-            df[column] = df[column].astype(dtype)
-    
-    if os.path.exists(path) and append:
-        existing_df = read_excel(path=path, schema=schema)
-        df = pd.concat([existing_df, df], ignore_index=True)
-    
-    df.to_excel(path, index=False)
+# Merge spells data
+spells_df = merge_and_sum(existing_spells_df, spells_df, ['Champion', 'Spell Type'], ['Spell Casts'])
 
 
 output_excel(PATH_MATCHES_DATA, matches_df)
