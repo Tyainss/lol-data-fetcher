@@ -291,7 +291,6 @@ if os.path.exists(PATH_KILLS_DATA):
     # Merge kills data
     kills_df = merge_and_sum(existing_kills_df, kills_df, ['Champion', 'Kill Type'], ['Number of Kills'])
 
-output_excel(PATH_KILLS_DATA, kills_df, append=False)
 
 # Load existing spells data
 if os.path.exists(PATH_SPELLS_DATA):
@@ -299,7 +298,6 @@ if os.path.exists(PATH_SPELLS_DATA):
     # Merge spells data
     spells_df = merge_and_sum(existing_spells_df, spells_df, ['Champion', 'Spell Type'], ['Spell Casts'])
 
-output_excel(PATH_SPELLS_DATA, spells_df, append=False)
 
 # Load existing damage data
 if os.path.exists(PATH_DAMAGE_DATA):
@@ -307,18 +305,20 @@ if os.path.exists(PATH_DAMAGE_DATA):
     # Merge damage data
     damage_df = merge_and_sum(existing_damage_df, damage_df, ['Champion', 'Damage Type'], ['Damage Amount'])
 
+
+
+
+
+matches_schema = schema['Match Data']
+
+output_excel(PATH_KILLS_DATA, kills_df, append=False)
+output_excel(PATH_SPELLS_DATA, spells_df, append=False)
 output_excel(PATH_DAMAGE_DATA, damage_df, append=False)
-
-
-
-
-matches_schema = schema['Matches Data']
-
 output_excel(PATH_MATCHES_DATA, matches_df, schema=matches_schema , append=not NEW_XLSX)
 
 
 # Update the configuration with the latest match date and number of matches
-latest_game_date = matches_df['game_creation_date'].max()
+latest_game_date = matches_df['game_creation_date_epoch'].max()
 
 update_config = True
 if update_config and matches_data:
