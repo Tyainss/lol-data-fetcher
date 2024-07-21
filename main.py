@@ -61,6 +61,7 @@ NEW_XLSX = config['NEW_XLSX']
 PATH_MATCHES_DATA = config['path_matches_data'].replace('{username}', RIOT_ID_NAME)
 PATH_KILLS_DATA = config['path_kills_data'].replace('{username}', RIOT_ID_NAME)
 PATH_SPELLS_DATA = config['path_spells_data'].replace('{username}', RIOT_ID_NAME)
+PATH_DAMAGE_DATA = config['path_damage_data'].replace('{username}', RIOT_ID_NAME)
 
 # Check if the user exists in the configuration, if not add the user
 if RIOT_ID_NAME not in config['USER_EXTRACT_INFO']:
@@ -176,6 +177,9 @@ def get_match_data(match_id):
                     , 'skill_w_clicks': participant.get('spell2Casts', 0)
                     , 'skill_e_clicks': participant.get('spell3Casts', 0)
                     , 'skill_r_clicks': participant.get('spell4Casts', 0)
+                    , 'ad_damage': participant['physicalDamageDealt']
+                    , 'ap_damage': participant['magicDamageDealt']
+                    , 'true_damage': participant['trueDamageDealt']                    
                 }
                 return match_details
     else:
@@ -197,7 +201,7 @@ list_match_ids = []
 matches_data = []
 kills_data = []
 spells_data = []
-
+damage_data = []
 
 # Check if there was already extracted data
 if os.path.exists(PATH_MATCHES_DATA) and not NEW_XLSX:
@@ -251,6 +255,16 @@ for match_id in list_match_ids:
                 , 'Spell Casts': match_data[spell_type]
             })
 
+        # Add data to damage_data
+        damage_types = ['ad_damage', 'ap_damage', 'true_damage']
+        damage_labels = ['AD Damage', 'AP Damage', 'True Damage']
+        for damage_type, damage_label in zip(damage_types, damage_labels):
+            damage_data.append({
+                'Champion': match_data['champion']
+                , 'Damage Type': damage_label
+                , 'Damage Amount': match_data[damage_type]
+            })
+
     # Sleep for 1.3 secs to avoid exceeding rate limit of API
     time.sleep(1.3)
 
@@ -258,6 +272,7 @@ for match_id in list_match_ids:
 matches_df = pd.DataFrame(matches_data)
 kills_df = pd.DataFrame(kills_data)
 spells_df = pd.DataFrame(spells_data)
+damage_df = pd.DataFrame(damage_data)
 
 
 # Load existing kills data
@@ -267,9 +282,6 @@ if os.path.exists(PATH_KILLS_DATA):
     kills_df = merge_and_sum(existing_kills_df, kills_df, ['Champion', 'Kill Type'], ['Number of Kills'])
 
 output_excel(PATH_KILLS_DATA, kills_df, append=False)
-# else:
-#     existing_kills_df = pd.DataFrame(columns=kills_df.columns)
-
 
 # Load existing spells data
 if os.path.exists(PATH_SPELLS_DATA):
@@ -278,8 +290,16 @@ if os.path.exists(PATH_SPELLS_DATA):
     spells_df = merge_and_sum(existing_spells_df, spells_df, ['Champion', 'Spell Type'], ['Spell Casts'])
 
 output_excel(PATH_SPELLS_DATA, spells_df, append=False)
-# else:
-#     existing_spells_df = pd.DataFrame(columns=spells_df.columns)
+
+# Load existing damage data
+if os.path.exists(PATH_DAMAGE_DATA):
+    existing_damage_df = read_excel(PATH_DAMAGE_DATA)
+    # Merge damage data
+    damage_df = merge_and_sum(existing_damage_df, damage_df, ['Champion', 'Damage Type'], ['Damage Amount'])
+
+output_excel(PATH_DAMAGE_DATA, damage_df, append=False)
+
+
 
 
 matches_schema = schema['Matches Data']
