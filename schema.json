@@ -1,0 +1,17 @@
+{
+    "Match Data": {
+        "match_id": "str",
+        "username": "str",
+        "champion": "str",
+        "duration": "int64",
+        "kills": "int64",
+        "deaths": "int64",
+        "assists": "int64",
+        "win": "int64",
+        "game_mode": "str",
+        "queueId": "int64",
+        "game_creation_date_epoch": "int64",
+        "game_creation_date": "datetime64"
+    }
+
+}
