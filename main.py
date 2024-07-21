@@ -10,6 +10,9 @@ import time
 with open('config.json', 'r') as f:
     config = json.load(f)
 
+with open('schema.json', 'r') as f:
+    schema = json.load(f)
+
 # Define the save_json function to save the configuration file
 def save_json(path, data):
     try:
@@ -279,7 +282,9 @@ output_excel(PATH_SPELLS_DATA, spells_df, append=False)
 #     existing_spells_df = pd.DataFrame(columns=spells_df.columns)
 
 
-output_excel(PATH_MATCHES_DATA, matches_df, append=False)
+matches_schema = schema['Matches Data']
+
+output_excel(PATH_MATCHES_DATA, matches_df, schema=matches_schema , append=not NEW_XLSX)
 
 
 # Update the configuration with the latest match date and number of matches
