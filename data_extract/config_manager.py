@@ -1,8 +1,19 @@
 import json
 import os
 from urllib.parse import quote
+import requests
+import logging
 
 from helper import Helper
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler("config_manager.log"),
+        logging.StreamHandler()
+    ]
+)
 
 class ConfigManager:
     def __init__(self, config_path='config.json', schema_path='schema.json'):
@@ -29,8 +40,24 @@ class ConfigManager:
         self.TAG_LINE = self.config['TAG_LINE']
         self.encoded_riot_id_name = quote(self.RIOT_ID_NAME)
         self.encoded_tag_line = quote(self.TAG_LINE)
+        self.BASE_URL = self.config['BASE_URL'].replace('{REGION}', self.SUMMONER_REGION).replace('{encoded_riot_id_name}', self.encoded_riot_id_name).replace('{encoded_tag_line}', self.encoded_tag_line)
 
-        self.url = self.config['BASE_URL'].replace('{REGION}', self.SUMMONER_REGION).replace('{encoded_riot_id_name}', self.encoded_riot_id_name).replace('{encoded_tag_line}', self.encoded_tag_line)
+        self.headers = { 'X-Riot-Token': self.API_KEY }
+        response = requests.get(self.BASE_URL, headers=self.headers)
+        if response.status_code == 200:
+            summoner_data = response.json()
+            self.PUUID = summoner_data['puuid'] # PUUID is the global unique player Riot ID
+        else:
+            self.PUUID = None
+            logging.error(f'Error: {response.status_code}')
+
+        self.PATH_MATCHES_DATA = self.config['path_matches_data'].replace('{username}', self.RIOT_ID_NAME)
+        self.PATH_KILLS_DATA = self.config['path_kills_data'].replace('{username}', self.RIOT_ID_NAME)
+        self.PATH_SPELLS_DATA = self.config['path_spells_data'].replace('{username}', self.RIOT_ID_NAME)
+        self.PATH_DAMAGE_DATA = self.config['path_damage_data'].replace('{username}', self.RIOT_ID_NAME)
+
+        self.SLEEP_DURATION = self.config['SLEEP_DURATION']
+        self.MATCH_FETCH_COUNT = self.config['MATCH_FETCH_COUNT']
 
     def load_json(self, path):
         try:
@@ -38,19 +65,19 @@ class ConfigManager:
                 return json.load(f)
         
         except FileNotFoundError:
-            print(f"Error: The file {path} does not exist.")
+            logging.error(f"Error: The file {path} does not exist.")
             return {}
         except json.JSONDecodeError:
-            print(f"Error: The file {path} is not a valid JSON.")
+            logging.error(f"Error: The file {path} is not a valid JSON.")
             return {}
         
     def save_json(self, path, data):
         try:
             with open(path, 'w') as f:
                 json.dump(data, f, indent=4)
-                print('Configuration saved successfully')
+                logging.info('Configuration saved successfully')
         except Exception as e:
-            print(f"Error: Could not save the configuration to {path}. {str(e)}")
+            logging.error(f"Error: Could not save the configuration to {path}. {str(e)}")
 
     def add_user(self, username):
         self.config['USER_EXTRACT_INFO'][username] = {
