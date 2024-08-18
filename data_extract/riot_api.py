@@ -2,6 +2,7 @@ import requests
 from datetime import datetime
 import time
 import logging
+from typing import Optional, List, Dict, Any, Tuple
 
 from helper import Helper
 from config_manager import ConfigManager
@@ -20,7 +21,7 @@ class RiotAPI:
         self.config_manager = ConfigManager()
         self.helper = Helper()
     
-    def fetch_matches_list(self, puuid=None, start_time=None, end_time=None):
+    def fetch_matches_list(self, puuid: Optional[str] = None, start_time: Optional[datetime] = None, end_time: Optional[datetime] = None)  -> List[str]:
         match_ids = []
         start = 0
         count = self.config_manager.MATCH_FETCH_COUNT
@@ -49,7 +50,7 @@ class RiotAPI:
         
         return match_ids
     
-    def fetch_match_info(self, match_id):
+    def fetch_match_info(self, match_id: str) -> Optional[Dict[str, Any]]:
         url = f'https://{self.config_manager.SUMMONER_REGION}.api.riotgames.com/lol/match/v5/matches/{match_id}'
         response = requests.get(url, headers=self.config_manager.headers)
         
@@ -86,7 +87,7 @@ class RiotAPI:
             logging.error(f'Error fetching match {match_id}: {response.status_code}')
             return None
         
-    def process_matches(self, list_match_ids):
+    def process_matches(self, list_match_ids: List[str]) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]], List[Dict[str, Any]], List[Dict[str, Any]], int]:
         matches_data = []
         kills_data = []
         spells_data = []

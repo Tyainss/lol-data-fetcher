@@ -1,6 +1,7 @@
 import pandas as pd
 import os
 import logging
+from typing import Optional, Dict
 
 logging.basicConfig(
     level=logging.INFO,
@@ -15,7 +16,7 @@ class DataStorage:
     def __init__():
         pass
 
-    def read_excel(self, path, schema=None):
+    def read_excel(self, path: str, schema: Optional[Dict[str, str]] = None) -> pd.DataFrame:
         logging.info('Reading Excel from: ', path)
         df = pd.read_excel(path)
         if schema:
@@ -26,7 +27,7 @@ class DataStorage:
         
         return df
 
-    def output_excel(self, path, df, schema=None, append=False):
+    def output_excel(self, path: str, df: pd.DataFrame, schema: Optional[Dict[str, str]] = None, append: bool = False) -> None:
         logging.info('Outputting Excel to: ', path)
         if schema:
             # Convert DataFrame columns to the specified data types

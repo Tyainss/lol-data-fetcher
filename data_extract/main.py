@@ -18,7 +18,7 @@ logging.basicConfig(
 )
 
 class LolDataExtractor:
-    def __init__(self, config_path, schema_path):
+    def __init__(self, config_path: str, schema_path: str):
         self.config_manager = ConfigManager(config_path, schema_path)
         self.riot_api = RiotAPI(api_key=self.config_manager.API_KEY
                                 , base_url=self.config_manager.BASE_URL
@@ -28,7 +28,7 @@ class LolDataExtractor:
         logging.basicConfig(level=logging.INFO)
         
     
-    def run(self):
+    def run(self) -> None:
         # Initialize lists to store match data
         list_match_ids = []
 

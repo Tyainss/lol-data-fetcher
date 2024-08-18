@@ -43,7 +43,7 @@ class ConfigManager:
         self.initialize_paths()
         self.initialize_other_settings()
 
-    def initialize_config(self):
+    def initialize_config(self) -> None:
         self.NEW_XLSX = self.config[self.NEW_XLSX_KEY]
         self.RIOT_ID_NAME = self.config[self.RIOT_ID_NAME_KEY]
         if self.RIOT_ID_NAME not in self.config[self.USER_EXTRACT_INFO_KEY]:
@@ -56,7 +56,7 @@ class ConfigManager:
         self.LATEST_MATCH_DATE = user_info['latest_match_date_epoch']
         self.NUMBER_MATCHES = user_info['number_matches']
 
-    def initialize_api(self):
+    def initialize_api(self) -> None:
         self.API_KEY = self.config[self.API_KEY_KEY]
         self.SUMMONER_REGION = self.config[self.SUMMONER_REGION_KEY]
         self.TAG_LINE = self.config[self.TAG_LINE_KEY]
@@ -73,13 +73,13 @@ class ConfigManager:
             self.PUUID = None
             logging.error(f'Error: {response.status_code} - {response.text}')
 
-    def initialize_paths(self):
+    def initialize_paths(self) -> None:
         self.PATH_MATCHES_DATA = self.config[self.PATH_MATCHES_DATA_KEY].replace('{username}', self.RIOT_ID_NAME)
         self.PATH_KILLS_DATA = self.config[self.PATH_KILLS_DATA_KEY].replace('{username}', self.RIOT_ID_NAME)
         self.PATH_SPELLS_DATA = self.config[self.PATH_SPELLS_DATA_KEY].replace('{username}', self.RIOT_ID_NAME)
         self.PATH_DAMAGE_DATA = self.config[self.PATH_DAMAGE_DATA_KEY].replace('{username}', self.RIOT_ID_NAME)
 
-    def initialize_other_settings(self):
+    def initialize_other_settings(self) -> None:
         self.SLEEP_DURATION = self.config[self.SLEEP_DURATION_KEY]
         self.MATCH_FETCH_COUNT = self.config[self.MATCH_FETCH_COUNT_KEY]
 
@@ -94,7 +94,7 @@ class ConfigManager:
             logging.error(f"Error: The file {path} is not a valid JSON.")
             return {}
         
-    def save_json(self, path: str, data: dict):
+    def save_json(self, path: str, data: dict) -> None:
         try:
             with open(path, 'w') as f:
                 json.dump(data, f, indent=4)
@@ -102,7 +102,7 @@ class ConfigManager:
         except Exception as e:
             logging.error(f"Error: Could not save the configuration to {path}. {str(e)}")
 
-    def add_user(self, username: str):
+    def add_user(self, username: str) -> None:
         self.config[self.USER_EXTRACT_INFO_KEY][username] = {
             'latest_match_date_str': ""
             , 'latest_match_date_epoch': None
@@ -110,13 +110,13 @@ class ConfigManager:
         }
         self.save_json(self.config_path, self.config)
 
-    def reset_config(self):
+    def reset_config(self) -> None:
         self.config[self.USER_EXTRACT_INFO_KEY][self.RIOT_ID_NAME]['latest_match_date_str'] = ""
         self.config[self.USER_EXTRACT_INFO_KEY][self.RIOT_ID_NAME]['latest_match_date_epoch'] = None
         self.config[self.USER_EXTRACT_INFO_KEY][self.RIOT_ID_NAME]['number_matches'] = 0
         self.save_json(self.config_path, self.config)
 
-    def update_latest_track_date(self, date: int, number_matches: int):
+    def update_latest_track_date(self, date: int, number_matches: int) -> None:
         self.config[self.USER_EXTRACT_INFO_KEY][self.RIOT_ID_NAME]['latest_match_date_epoch'] = date
         date_str = Helper().date_from_epoch(date)
         self.config[self.USER_EXTRACT_INFO_KEY][self.RIOT_ID_NAME]['latest_match_date_str'] = date_str
