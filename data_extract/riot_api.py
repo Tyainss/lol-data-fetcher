@@ -6,6 +6,7 @@ from typing import Optional, List, Dict, Any, Tuple
 
 from helper import Helper
 from config_manager import ConfigManager
+from api_utils import make_request
 
 logging.basicConfig(
     level=logging.INFO,
@@ -36,7 +37,8 @@ class RiotAPI:
             # else:
             #     url = f'https://{self.config_manager.SUMMONER_REGION}.api.riotgames.com/lol/match/v5/matches/by-puuid/{self.config_manager.PUUID}/ids?start={start}&count={count}'
                 
-            response = requests.get(url, headers=self.config_manager.headers)
+            response = make_request(url, self.config_manager.headers)
+            # response = requests.get(url, headers=self.config_manager.headers)
             
             if response.status_code == 200:
                 matches = response.json()
@@ -52,7 +54,8 @@ class RiotAPI:
     
     def fetch_match_info(self, match_id: str) -> Optional[Dict[str, Any]]:
         url = f'https://{self.config_manager.SUMMONER_REGION}.api.riotgames.com/lol/match/v5/matches/{match_id}'
-        response = requests.get(url, headers=self.config_manager.headers)
+        response = make_request(url, self.config_manager.headers)
+        # response = requests.get(url, headers=self.config_manager.headers)
         
         if response.status_code == 200:
             match_data = response.json()
