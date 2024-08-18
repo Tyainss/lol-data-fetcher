@@ -16,31 +16,53 @@ logging.basicConfig(
 )
 
 class ConfigManager:
-    def __init__(self, config_path='config.json', schema_path='schema.json'):
+    CONFIG_PATH_DEFAULT = 'config.json'
+    SCHEMA_PATH_DEFAULT = 'schema.json'
+    USER_EXTRACT_INFO_KEY = 'USER_EXTRACT_INFO'
+    NEW_XLSX_KEY = 'NEW_XLSX'
+    RIOT_ID_NAME_KEY = 'RIOT_ID_NAME'
+    API_KEY_KEY = 'API_KEY'
+    SUMMONER_REGION_KEY = 'SUMMONER_REGION'
+    TAG_LINE_KEY = 'TAG_LINE'
+    BASE_URL_KEY = 'BASE_URL'
+    PATH_MATCHES_DATA_KEY = 'path_matches_data'
+    PATH_KILLS_DATA_KEY = 'path_kills_data'
+    PATH_SPELLS_DATA_KEY = 'path_spells_data'
+    PATH_DAMAGE_DATA_KEY = 'path_damage_data'
+    SLEEP_DURATION_KEY = 'SLEEP_DURATION'
+    MATCH_FETCH_COUNT_KEY = 'MATCH_FETCH_COUNT'
+
+    def __init__(self, config_path: str = CONFIG_PATH_DEFAULT, schema_path: str = SCHEMA_PATH_DEFAULT):
         self.config_path = config_path 
         self.schema_path = schema_path
         self.config = self.load_json(config_path)
         self.schema = self.load_json(schema_path)
 
-        self.NEW_XLSX = self.config['NEW_XLSX']
+        self.initialize_config()
+        self.initialize_api()
+        self.initialize_paths()
+        self.initialize_other_settings()
 
-        self.RIOT_ID_NAME = self.config['RIOT_ID_NAME']
-        if self.RIOT_ID_NAME not in self.config['USER_EXTRACT_INFO']:
+    def initialize_config(self):
+        self.NEW_XLSX = self.config[self.NEW_XLSX_KEY]
+        self.RIOT_ID_NAME = self.config[self.RIOT_ID_NAME_KEY]
+        if self.RIOT_ID_NAME not in self.config[self.USER_EXTRACT_INFO_KEY]:
             self.add_user(self.RIOT_ID_NAME)
         elif self.NEW_XLSX:
             self.reset_config()
 
-        self.LATEST_MATCH_DATE_STR = self.config['USER_EXTRACT_INFO'][self.RIOT_ID_NAME]['latest_match_date_str']
-        self.LATEST_MATCH_DATE = self.config['USER_EXTRACT_INFO'][self.RIOT_ID_NAME]['latest_match_date_epoch']
-        self.NUMBER_MATCHES = self.config['USER_EXTRACT_INFO'][self.RIOT_ID_NAME]['number_matches']
+        user_info = self.config[self.USER_EXTRACT_INFO_KEY][self.RIOT_ID_NAME]
+        self.LATEST_MATCH_DATE_STR = user_info['latest_match_date_str']
+        self.LATEST_MATCH_DATE = user_info['latest_match_date_epoch']
+        self.NUMBER_MATCHES = user_info['number_matches']
 
-        self.API_KEY = self.config['API_KEY']
-        self.RIOT_ID_NAME = self.config['RIOT_ID_NAME']
-        self.SUMMONER_REGION = self.config['SUMMONER_REGION']
-        self.TAG_LINE = self.config['TAG_LINE']
+    def initialize_api(self):
+        self.API_KEY = self.config[self.API_KEY_KEY]
+        self.SUMMONER_REGION = self.config[self.SUMMONER_REGION_KEY]
+        self.TAG_LINE = self.config[self.TAG_LINE_KEY]
         self.encoded_riot_id_name = quote(self.RIOT_ID_NAME)
         self.encoded_tag_line = quote(self.TAG_LINE)
-        self.BASE_URL = self.config['BASE_URL'].replace('{REGION}', self.SUMMONER_REGION).replace('{encoded_riot_id_name}', self.encoded_riot_id_name).replace('{encoded_tag_line}', self.encoded_tag_line)
+        self.BASE_URL = self.config[self.BASE_URL_KEY].replace('{REGION}', self.SUMMONER_REGION).replace('{encoded_riot_id_name}', self.encoded_riot_id_name).replace('{encoded_tag_line}', self.encoded_tag_line)
 
         self.headers = { 'X-Riot-Token': self.API_KEY }
         response = requests.get(self.BASE_URL, headers=self.headers)
@@ -49,21 +71,22 @@ class ConfigManager:
             self.PUUID = summoner_data['puuid'] # PUUID is the global unique player Riot ID
         else:
             self.PUUID = None
-            logging.error(f'Error: {response.status_code}')
+            logging.error(f'Error: {response.status_code} - {response.text}')
 
-        self.PATH_MATCHES_DATA = self.config['path_matches_data'].replace('{username}', self.RIOT_ID_NAME)
-        self.PATH_KILLS_DATA = self.config['path_kills_data'].replace('{username}', self.RIOT_ID_NAME)
-        self.PATH_SPELLS_DATA = self.config['path_spells_data'].replace('{username}', self.RIOT_ID_NAME)
-        self.PATH_DAMAGE_DATA = self.config['path_damage_data'].replace('{username}', self.RIOT_ID_NAME)
+    def initialize_paths(self):
+        self.PATH_MATCHES_DATA = self.config[self.PATH_MATCHES_DATA_KEY].replace('{username}', self.RIOT_ID_NAME)
+        self.PATH_KILLS_DATA = self.config[self.PATH_KILLS_DATA_KEY].replace('{username}', self.RIOT_ID_NAME)
+        self.PATH_SPELLS_DATA = self.config[self.PATH_SPELLS_DATA_KEY].replace('{username}', self.RIOT_ID_NAME)
+        self.PATH_DAMAGE_DATA = self.config[self.PATH_DAMAGE_DATA_KEY].replace('{username}', self.RIOT_ID_NAME)
 
-        self.SLEEP_DURATION = self.config['SLEEP_DURATION']
-        self.MATCH_FETCH_COUNT = self.config['MATCH_FETCH_COUNT']
+    def initialize_other_settings(self):
+        self.SLEEP_DURATION = self.config[self.SLEEP_DURATION_KEY]
+        self.MATCH_FETCH_COUNT = self.config[self.MATCH_FETCH_COUNT_KEY]
 
-    def load_json(self, path):
+    def load_json(self, path: str) -> dict:
         try:
             with open(path) as f:
                 return json.load(f)
-        
         except FileNotFoundError:
             logging.error(f"Error: The file {path} does not exist.")
             return {}
@@ -71,7 +94,7 @@ class ConfigManager:
             logging.error(f"Error: The file {path} is not a valid JSON.")
             return {}
         
-    def save_json(self, path, data):
+    def save_json(self, path: str, data: dict):
         try:
             with open(path, 'w') as f:
                 json.dump(data, f, indent=4)
@@ -79,27 +102,23 @@ class ConfigManager:
         except Exception as e:
             logging.error(f"Error: Could not save the configuration to {path}. {str(e)}")
 
-    def add_user(self, username):
-        self.config['USER_EXTRACT_INFO'][username] = {
+    def add_user(self, username: str):
+        self.config[self.USER_EXTRACT_INFO_KEY][username] = {
             'latest_match_date_str': ""
             , 'latest_match_date_epoch': None
             , 'number_matches': 0
         }
-        self.save_json('config.json', self.config)
+        self.save_json(self.config_path, self.config)
 
     def reset_config(self):
-        self.config['USER_EXTRACT_INFO'][self.RIOT_ID_NAME]['latest_match_date_str'] = ""
-        self.config['USER_EXTRACT_INFO'][self.RIOT_ID_NAME]['latest_match_date_epoch'] = None
-        self.config['USER_EXTRACT_INFO'][self.RIOT_ID_NAME]['number_matches'] = 0
-        self.save_json('config.json', self.config)
+        self.config[self.USER_EXTRACT_INFO_KEY][self.RIOT_ID_NAME]['latest_match_date_str'] = ""
+        self.config[self.USER_EXTRACT_INFO_KEY][self.RIOT_ID_NAME]['latest_match_date_epoch'] = None
+        self.config[self.USER_EXTRACT_INFO_KEY][self.RIOT_ID_NAME]['number_matches'] = 0
+        self.save_json(self.config_path, self.config)
 
-    def update_latest_track_date(self, date, number_matches):
-            self.config['USER_EXTRACT_INFO'][self.RIOT_ID_NAME]['latest_match_date_epoch'] = date
-            
-            date_str = Helper().date_from_epoch(date)
-            self.config['USER_EXTRACT_INFO'][self.RIOT_ID_NAME]['latest_match_date_str'] = date_str
-            
-            self.config['USER_EXTRACT_INFO'][self.RIOT_ID_NAME]['number_matches'] = number_matches
-            self.save_json('config.json', self.config)
-        
-
+    def update_latest_track_date(self, date: int, number_matches: int):
+        self.config[self.USER_EXTRACT_INFO_KEY][self.RIOT_ID_NAME]['latest_match_date_epoch'] = date
+        date_str = Helper().date_from_epoch(date)
+        self.config[self.USER_EXTRACT_INFO_KEY][self.RIOT_ID_NAME]['latest_match_date_str'] = date_str
+        self.config[self.USER_EXTRACT_INFO_KEY][self.RIOT_ID_NAME]['number_matches'] = number_matches
+        self.save_json(self.config_path, self.config)
