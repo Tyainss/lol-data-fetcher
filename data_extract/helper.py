@@ -1,7 +1,7 @@
 from datetime import datetime
 import pandas as pd
 
-class Helper():
+class Helper:
     def __init__():
         pass
 
