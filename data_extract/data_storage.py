@@ -1,27 +1,37 @@
 import pandas as pd
 import os
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler("data_storage.log"),
+        logging.StreamHandler()
+    ]
+)
 
 class DataStorage:
     def __init__():
         pass
 
     def read_excel(self, path, schema=None):
-        print('Reading Excel from: ', path)
+        logging.info('Reading Excel from: ', path)
         df = pd.read_excel(path)
         if schema:
             # Convert DataFrame columns to the specified data types
             for column, dtype in schema.items():
-                print('Column :', column, 'dtype :', dtype)
+                logging.info('Column :', column, 'dtype :', dtype)
                 df[column] = df[column].astype(dtype)
         
         return df
 
     def output_excel(self, path, df, schema=None, append=False):
-        print('Outputting Excel to: ', path)
+        logging.info('Outputting Excel to: ', path)
         if schema:
             # Convert DataFrame columns to the specified data types
             for column, dtype in schema.items():
-                print('Column :', column, 'dtype :', dtype)
+                logging.info('Column :', column, 'dtype :', dtype)
                 df[column] = df[column].astype(dtype)
         
         if os.path.exists(path) and append:
