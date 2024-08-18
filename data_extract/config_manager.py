@@ -31,9 +31,6 @@ class ConfigManager:
         self.encoded_tag_line = quote(self.TAG_LINE)
 
         self.url = self.config['BASE_URL'].replace('{REGION}', self.SUMMONER_REGION).replace('{encoded_riot_id_name}', self.encoded_riot_id_name).replace('{encoded_tag_line}', self.encoded_tag_line)
-        self.headers = {
-            'X-Riot-Token': self.API_KEY
-        }
 
     def load_json(self, path):
         try:
