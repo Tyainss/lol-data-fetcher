@@ -5,6 +5,7 @@ import requests
 import logging
 
 from helper import Helper
+from api_utils import make_request
 
 logging.basicConfig(
     level=logging.INFO,
@@ -65,7 +66,8 @@ class ConfigManager:
         self.BASE_URL = self.config[self.BASE_URL_KEY].replace('{REGION}', self.SUMMONER_REGION).replace('{encoded_riot_id_name}', self.encoded_riot_id_name).replace('{encoded_tag_line}', self.encoded_tag_line)
 
         self.headers = { 'X-Riot-Token': self.API_KEY }
-        response = requests.get(self.BASE_URL, headers=self.headers)
+        response = make_request(self.BASE_URL, headers=self.headers)
+        # response = requests.get(self.BASE_URL, headers=self.headers)
         if response.status_code == 200:
             summoner_data = response.json()
             self.PUUID = summoner_data['puuid'] # PUUID is the global unique player Riot ID
