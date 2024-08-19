@@ -34,7 +34,7 @@ class LolDataExtractor:
 
         # Check if there was already extracted data
         if os.path.exists(self.config_manager.PATH_MATCHES_DATA) and not self.config_manager.NEW_XLSX:
-            existing_match_df = self.storage.read_excel(self.config_manager.PATH_MATCHES_DATA)
+            existing_match_df = self.storage.read_excel(path=self.config_manager.PATH_MATCHES_DATA, schema=self.config_manager.MATCHES_SCHEMA)
             
             start_time = datetime.fromtimestamp(self.config_manager.LATEST_MATCH_DATE / 1000).strftime('%Y-%m-%d %H:%M:%S')
             list_match_ids = self.riot_api.fetch_matches(self.config_manager.PUUID, start_time=start_time)
@@ -54,31 +54,29 @@ class LolDataExtractor:
 
         # Load existing kills data
         if os.path.exists(self.config_manager.PATH_KILLS_DATA):
-            existing_kills_df = self.storage.read_excel(self.config_manager.PATH_KILLS_DATA)
+            existing_kills_df = self.storage.read_excel(path=self.config_manager.PATH_KILLS_DATA, schema=self.config_manager.KILLS_SCHEMA)
             # Merge kills data
             kills_df = self.helper.merge_and_sum(existing_kills_df, kills_df, ['Champion', 'Kill Type'], ['Number of Kills'])
 
 
         # Load existing spells data
         if os.path.exists(self.config_manager.PATH_SPELLS_DATA):
-            existing_spells_df = self.storage.read_excel(self.config_manager.PATH_SPELLS_DATA)
+            existing_spells_df = self.storage.read_excel(path=self.config_manager.PATH_SPELLS_DATA, schema=self.config_manager.SPELLS_SCHEMA)
             # Merge spells data
             spells_df = self.helper.merge_and_sum(existing_spells_df, spells_df, ['Champion', 'Spell Type'], ['Spell Casts'])
 
 
         # Load existing damage data
         if os.path.exists(self.config_manager.PATH_DAMAGE_DATA):
-            existing_damage_df = self.storage.read_excel(self.config_manager.PATH_DAMAGE_DATA)
+            existing_damage_df = self.storage.read_excel(path=self.config_manager.PATH_DAMAGE_DATA, schema=self.config_manager.DAMAGE_SCHEMA)
             # Merge damage data
             damage_df = self.helper.merge_and_sum(existing_damage_df, damage_df, ['Champion', 'Damage Type'], ['Damage Amount'])
 
 
-        matches_schema = self.config_manager.schema['Match Data']
-
-        self.storage.output_excel(self.config_manager.PATH_KILLS_DATA, kills_df, append=False)
-        self.storage.output_excel(self.config_manager.PATH_SPELLS_DATA, spells_df, append=False)
-        self.storage.output_excel(self.config_manager.PATH_DAMAGE_DATA, damage_df, append=False)
-        self.storage.output_excel(self.config_manager.PATH_MATCHES_DATA, matches_df, schema=matches_schema , append=not self.config_manager.NEW_XLSX)
+        self.storage.output_excel(df=kills_df, path=self.config_manager.PATH_KILLS_DATA, schema = self.config_manager.KILLS_SCHEMA, append=False)
+        self.storage.output_excel(df=spells_df, path=self.config_manager.PATH_SPELLS_DATA, schema = self.config_manager.SPELLS_SCHEMA, append=False)
+        self.storage.output_excel(df=damage_df, path=self.config_manager.PATH_DAMAGE_DATA, schema = self.config_manager.DAMAGE_SCHEMA, append=False)
+        self.storage.output_excel(df=matches_df, path=self.config_manager.PATH_MATCHES_DATA, schema = self.config_manager.MATCHES_SCHEMA, append=not self.config_manager.NEW_XLSX)
 
 
         # Update the configuration with the latest match date and number of matches

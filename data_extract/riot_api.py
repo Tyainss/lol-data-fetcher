@@ -22,7 +22,7 @@ class RiotAPI:
         self.config_manager = ConfigManager()
         self.helper = Helper()
     
-    def fetch_matches_list(self, puuid: Optional[str] = None, start_time: Optional[datetime] = None, end_time: Optional[datetime] = None)  -> List[str]:
+    def fetch_matches_list(self, puuid: Optional[str] = None, start_time: Optional[datetime] = None, end_time: Optional[datetime] = None) -> List[str]:
         match_ids = []
         start = 0
         count = self.config_manager.MATCH_FETCH_COUNT

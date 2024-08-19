@@ -57,6 +57,11 @@ class ConfigManager:
         self.LATEST_MATCH_DATE = user_info['latest_match_date_epoch']
         self.NUMBER_MATCHES = user_info['number_matches']
 
+        self.MATCHES_SCHEMA = self.schema['Match Data']
+        self.KILLS_SCHEMA = self.schema['Kills Data']
+        self.DAMAGE_SCHEMA = self.schema['Damage Data']
+        self.SPELLS_SCHEMA = self.schema['Spells Data']
+
     def initialize_api(self) -> None:
         self.API_KEY = self.config[self.API_KEY_KEY]
         self.SUMMONER_REGION = self.config[self.SUMMONER_REGION_KEY]
