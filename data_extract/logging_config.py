@@ -6,15 +6,6 @@ def setup_logging():
     if not os.path.exists('logs'):
         os.makedirs('logs')
     
-    # logging.basicConfig(
-    #     level=logging.INFO,
-    #     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    #     handlers=[
-    #         logging.FileHandler("logs/full_log.log"),
-    #         logging.StreamHandler()
-    #     ]
-    # )~
-    
     # Get the root logger
     logger = logging.getLogger()
     
@@ -23,7 +14,7 @@ def setup_logging():
         logger.setLevel(logging.INFO)
 
         # Create handlers
-        file_handler = logging.FileHandler("logs/full_log_teste_2.log")
+        file_handler = logging.FileHandler("logs/full_log.log")
         stream_handler = logging.StreamHandler()
 
         # Set formatter
