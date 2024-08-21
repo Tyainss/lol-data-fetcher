@@ -13,7 +13,7 @@ logging.basicConfig(
 )
 
 class DataStorage:
-    def __init__():
+    def __init__(self):
         pass
 
     def read_excel(self, path: str, schema: Optional[Dict[str, str]] = None) -> pd.DataFrame:

@@ -20,9 +20,7 @@ logging.basicConfig(
 class LolDataExtractor:
     def __init__(self, config_path: str, schema_path: str):
         self.config_manager = ConfigManager(config_path, schema_path)
-        self.riot_api = RiotAPI(api_key=self.config_manager.API_KEY
-                                , base_url=self.config_manager.BASE_URL
-                                , username=self.config_manager.RIOT_ID_NAME)
+        self.riot_api = RiotAPI()
         self.storage = DataStorage()
         self.helper = Helper()
         logging.basicConfig(level=logging.INFO)
@@ -37,11 +35,11 @@ class LolDataExtractor:
             existing_match_df = self.storage.read_excel(path=self.config_manager.PATH_MATCHES_DATA, schema=self.config_manager.MATCHES_SCHEMA)
             
             start_time = datetime.fromtimestamp(self.config_manager.LATEST_MATCH_DATE / 1000).strftime('%Y-%m-%d %H:%M:%S')
-            list_match_ids = self.riot_api.fetch_matches(self.config_manager.PUUID, start_time=start_time)
+            list_match_ids = self.riot_api.fetch_matches_list(self.config_manager.PUUID, start_time=start_time)
             # Don't get data from matches already extracted
             list_match_ids = [m for m in list_match_ids if m not in list(existing_match_df['match_id'])]
         else:
-            list_match_ids = self.riot_api.fetch_matches(self.config_manager.PUUID)
+            list_match_ids = self.riot_api.fetch_matches_list(self.config_manager.PUUID)
 
         logging.info(f'Total Matches: {len(list_match_ids)}')
 
@@ -87,6 +85,6 @@ class LolDataExtractor:
             if not self.config_manager.LATEST_MATCH_DATE or latest_game_date >= self.config_manager.LATEST_MATCH_DATE:
                 self.config_manager.update_latest_track_date(date=latest_game_date, number_matches=number_matches)
 
-if __name__ == 'main':
+if __name__ == '__main__':
     extractor = LolDataExtractor('config.json', 'schema.json')
-    # extractor.run()
+    extractor.run()

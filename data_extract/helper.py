@@ -3,7 +3,7 @@ import pandas as pd
 from typing import List
 
 class Helper:
-    def __init__():
+    def __init__(self):
         pass
 
     def date_from_epoch(self, epoch_date: float) -> str:
