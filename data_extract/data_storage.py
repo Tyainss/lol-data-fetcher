@@ -17,7 +17,7 @@ class DataStorage:
         pass
 
     def read_excel(self, path: str, schema: Optional[Dict[str, str]] = None) -> pd.DataFrame:
-        logging.info('Reading Excel from: ', path)
+        logging.info(f'Reading Excel from: {path}')
         df = pd.read_excel(path)
         if schema:
             # Convert DataFrame columns to the specified data types
@@ -28,11 +28,11 @@ class DataStorage:
         return df
 
     def output_excel(self, path: str, df: pd.DataFrame, schema: Optional[Dict[str, str]] = None, append: bool = False) -> None:
-        logging.info('Outputting Excel to: ', path)
+        logging.info(f'Outputting Excel to: {path}')
         if schema:
             # Convert DataFrame columns to the specified data types
             for column, dtype in schema.items():
-                logging.info('Column :', column, 'dtype :', dtype)
+                logging.info(f'Column :{column}, dtype :{dtype}')
                 df[column] = df[column].astype(dtype)
         
         if os.path.exists(path) and append:
