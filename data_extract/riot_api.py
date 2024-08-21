@@ -8,14 +8,11 @@ from helper import Helper
 from config_manager import ConfigManager
 from api_utils import make_request
 
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler("riot_api.log"),
-        logging.StreamHandler()
-    ]
-)
+# Import the logging configuration
+from logging_config import setup_logging
+
+# Set up logging
+logger = setup_logging()
 
 class RiotAPI:
     def __init__(self):
@@ -47,7 +44,7 @@ class RiotAPI:
                 match_ids.extend(matches)
                 start += count
             else:
-                logging.error(f'Error: {response.status_code}')
+                logger.error(f'Error: {response.status_code}')
                 break
         
         return match_ids
@@ -87,7 +84,7 @@ class RiotAPI:
                     }
                     return match_details
         else:
-            logging.error(f'Error fetching match {match_id}: {response.status_code}')
+            logger.error(f'Error fetching match {match_id}: {response.status_code}')
             return None
         
     def process_matches(self, list_match_ids: List[str]) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]], List[Dict[str, Any]], List[Dict[str, Any]], int]:

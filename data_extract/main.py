@@ -8,23 +8,18 @@ from data_storage import DataStorage
 from helper import Helper
 from riot_api import RiotAPI
 
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler("main.log"),
-        logging.StreamHandler()
-    ]
-)
+# Import the logging configuration
+from logging_config import setup_logging
+
+# Set up logging
+logger = setup_logging()
 
 class LolDataExtractor:
     def __init__(self, config_path: str, schema_path: str):
         self.config_manager = ConfigManager(config_path, schema_path)
         self.riot_api = RiotAPI()
         self.storage = DataStorage()
-        self.helper = Helper()
-        logging.basicConfig(level=logging.INFO)
-        
+        self.helper = Helper()        
     
     def run(self) -> None:
         # Initialize lists to store match data
@@ -41,7 +36,7 @@ class LolDataExtractor:
         else:
             list_match_ids = self.riot_api.fetch_matches_list(self.config_manager.PUUID)
 
-        logging.info(f'Total Matches: {len(list_match_ids)}')
+        logger.info(f'Total Matches: {len(list_match_ids)}')
 
         matches_data, kills_data, spells_data, damage_data, number_matches = self.riot_api.process_matches(list_match_ids)
 

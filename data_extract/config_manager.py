@@ -1,20 +1,14 @@
 import json
-import os
 from urllib.parse import quote
-import requests
-import logging
 
 from helper import Helper
 from api_utils import make_request
 
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler("config_manager.log"),
-        logging.StreamHandler()
-    ]
-)
+# Import the logging configuration
+from logging_config import setup_logging
+
+# Set up logging
+logger = setup_logging()
 
 class ConfigManager:
     CONFIG_PATH_DEFAULT = 'config.json'
@@ -78,7 +72,7 @@ class ConfigManager:
             self.PUUID = summoner_data['puuid'] # PUUID is the global unique player Riot ID
         else:
             self.PUUID = None
-            logging.error(f'Error: {response.status_code} - {response.text}')
+            logger.error(f'Error: {response.status_code} - {response.text}')
 
     def initialize_paths(self) -> None:
         self.PATH_MATCHES_DATA = self.config[self.PATH_MATCHES_DATA_KEY].replace('{username}', self.RIOT_ID_NAME)
@@ -95,19 +89,19 @@ class ConfigManager:
             with open(path) as f:
                 return json.load(f)
         except FileNotFoundError:
-            logging.error(f"Error: The file {path} does not exist.")
+            logger.error(f"Error: The file {path} does not exist.")
             return {}
         except json.JSONDecodeError:
-            logging.error(f"Error: The file {path} is not a valid JSON.")
+            logger.error(f"Error: The file {path} is not a valid JSON.")
             return {}
         
     def save_json(self, path: str, data: dict) -> None:
         try:
             with open(path, 'w') as f:
                 json.dump(data, f, indent=4)
-                logging.info('Configuration saved successfully')
+                logger.info('Configuration saved successfully')
         except Exception as e:
-            logging.error(f"Error: Could not save the configuration to {path}. {str(e)}")
+            logger.error(f"Error: Could not save the configuration to {path}. {str(e)}")
 
     def add_user(self, username: str) -> None:
         self.config[self.USER_EXTRACT_INFO_KEY][username] = {
