@@ -12,6 +12,20 @@
         "queueId": "int64",
         "game_creation_date_epoch": "int64",
         "game_creation_date": "datetime64"
+    },
+    "Kills Data": {
+        "Champion": "str",
+        "Kill Type": "str",
+        "Number of Kills": "int64"
+    },
+    "Damage Data": {
+        "Champion": "str",
+        "Damage Type": "str",
+        "Damage Amount": "int64"
+    },
+    "Spells Data": {
+        "Champion": "str",
+        "Spell Type": "str",
+        "Spell Casts": "int64"
     }
-
 }
