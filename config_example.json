@@ -1,0 +1,17 @@
+{
+    "USER_EXTRACT_INFO": {
+    },
+    "RIOT_ID_NAME": "YOUR_RIOT_USERNAME",
+    "TAG_LINE": "YOUR_TAGLINE",
+    "SUMMONER_REGION": "your_region_lowercase",
+    "API_KEY": "YOUR_API_KEY",
+    "BASE_URL": "https://{REGION}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/{encoded_riot_id_name}/{encoded_tag_line}",
+    "extract_folder": ".\\extract_folder",
+    "path_matches_data": ".\\extract_folder\\matches_extract_{username}.xlsx",
+    "path_kills_data": ".\\extract_folder\\kills_extract_{username}.xlsx",
+    "path_spells_data": ".\\extract_folder\\spells_extract_{username}.xlsx",
+    "path_damage_data": ".\\extract_folder\\damage_extract_{username}.xlsx",
+    "NEW_XLSX": false,
+    "SLEEP_DURATION": 1.3,
+    "MATCH_FETCH_COUNT": 100
+}
