@@ -2,6 +2,7 @@ extract_folder
 config.json
 
 # Ignore log files
+logs/
 *.log
 
 # Byte-compiled / optimized / DLL files

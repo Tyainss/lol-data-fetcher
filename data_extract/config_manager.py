@@ -66,7 +66,6 @@ class ConfigManager:
 
         self.headers = { 'X-Riot-Token': self.API_KEY }
         response = make_request(self.BASE_URL, headers=self.headers)
-        # response = requests.get(self.BASE_URL, headers=self.headers)
         if response.status_code == 200:
             summoner_data = response.json()
             self.PUUID = summoner_data['puuid'] # PUUID is the global unique player Riot ID
