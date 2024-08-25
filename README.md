@@ -4,6 +4,8 @@ Welcome to the League of Legends Data Fetcher! 🎉
 
 This repository is meant to save the code used to extract your Lol data which can then be used to find insights on your match history with a [cool Tableau dashboard](https://public.tableau.com/app/profile/ruiarpereira/viz/LeagueofLegendsUserDashboard/MainDashboardDarkMode)! :)
 
+![Dashboard Dark Mode](images/00_Dashboard_Dark_Mode.png)
+
 ## Features
 - Fetch match data using [Riot's API](https://developer.riotgames.com/), time spent per champion, spells used, KDA, Win Rate & more.
 - Merge and clean data to prepare for dashboard.
