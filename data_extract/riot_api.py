@@ -29,13 +29,8 @@ class RiotAPI:
                    f'?start={start}&count={count}')
             if start_time and end_time:
                 url += f'&startTime={int(start_time.timestamp())}&endTime={int(end_time.timestamp())}'
-            #     url = (f'https://{self.config_manager.SUMMONER_REGION}.api.riotgames.com/lol/match/v5/matches/by-puuid/{self.config_manager.PUUID}/ids'
-            #     f'?startTime={int(start_time.timestamp())}&endTime={int(end_time.timestamp())}&start={start}&count={count}')
-            # else:
-            #     url = f'https://{self.config_manager.SUMMONER_REGION}.api.riotgames.com/lol/match/v5/matches/by-puuid/{self.config_manager.PUUID}/ids?start={start}&count={count}'
                 
             response = make_request(url, self.config_manager.headers)
-            # response = requests.get(url, headers=self.config_manager.headers)
             
             if response.status_code == 200:
                 matches = response.json()
@@ -52,7 +47,6 @@ class RiotAPI:
     def fetch_match_info(self, match_id: str) -> Optional[Dict[str, Any]]:
         url = f'https://{self.config_manager.SUMMONER_REGION}.api.riotgames.com/lol/match/v5/matches/{match_id}'
         response = make_request(url, self.config_manager.headers)
-        # response = requests.get(url, headers=self.config_manager.headers)
         
         if response.status_code == 200:
             match_data = response.json()
